@@ -51,8 +51,11 @@ class Line:
         self._fields = kwargs.get('fields', {})
         self._line_format = kwargs.get('line_format')
 
-        attributes = self._line_format.match(raw).groupdict()
-        self.attributes = self._parse_fields(attributes)
+        m = self._line_format.match(raw)
+        if m:
+            self.attributes = self._parse_fields(m.groupdict())
+        else:
+            self.attributes = {}
         self._lines = self._raw.count('\n')
 
     def _parse_fields(self, attributes):
