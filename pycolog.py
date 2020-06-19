@@ -1,4 +1,5 @@
 import argparse
+import glob
 import pathlib
 import curses
 
@@ -13,8 +14,10 @@ class Analyzer:
 
         self._line_start = kwargs.get('line_start')
 
-        with open(kwargs.get('file')) as f:
-            self._raw_lines = f.readlines()
+        self._raw_lines = []
+        for file in self._natural_sort(glob.glob(str(kwargs.get('file')))):
+            with open(file) as f:
+                self._raw_lines.extend(f.readlines())
 
         self._lines = list(self._find_lines())
         self._total = len(self._lines)
@@ -43,6 +46,9 @@ class Analyzer:
             first = False
             current = raw
         yield Line(current.strip(), **self._kwargs)
+
+    def _natural_sort(self, files):
+        return sorted(files, key=lambda key: [int(c) if c.isdigit() else c.lower() for c in re.split('([0-9]+)', key)])
 
 
 class Line:
