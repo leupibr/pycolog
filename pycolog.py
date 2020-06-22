@@ -15,7 +15,8 @@ class Analyzer:
         self._line_start = kwargs.get('line_start')
 
         self._raw_lines = []
-        for file in self._natural_sort(glob.glob(str(kwargs.get('file')))):
+        files = self._expand_file_paths(kwargs.get('files'))
+        for file in self._natural_sort(files):
             with open(file) as f:
                 self._raw_lines.extend(f.readlines())
 
@@ -46,6 +47,10 @@ class Analyzer:
             first = False
             current = raw
         yield Line(current.strip(), **self._kwargs)
+
+    def _expand_file_paths(self, file_paths):
+        for file_path in file_paths:
+            yield from glob.glob(str(file_path))
 
     def _natural_sort(self, files):
         return sorted(files, key=lambda key: [int(c) if c.isdigit() else c.lower() for c in re.split('([0-9]+)', key)])
@@ -332,15 +337,15 @@ def strptime(date_string, format):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('file', type=pathlib.Path, help='Path to the log file to be analyzed')
-    parser.add_argument('format', type=pathlib.Path, help='Path to the logs format file')
+    parser.add_argument('layout', type=pathlib.Path, help='Path to the logs layout definition file')
+    parser.add_argument('files', type=pathlib.Path, nargs='+', help='Path to the log files to be analyzed')
 
     yaml.SafeLoader.add_constructor(u'tag:yaml.org,2002:python/regexp', lambda l, n: re.compile(l.construct_scalar(n)))
     yaml.SafeLoader.add_constructor(u'tag:yaml.org,2002:python/strptime', lambda l, n: strptime)
     yaml.SafeLoader.add_constructor(u'tag:yaml.org,2002:python/tuple', lambda l, n: tuple)
 
     config = parser.parse_args().__dict__
-    with open(config.get('format')) as f:
+    with open(config.get('layout')) as f:
         config.update(yaml.safe_load(f))
 
     analyzer = Analyzer(**config)
