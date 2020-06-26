@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import argparse
 import glob
 import pathlib
@@ -10,7 +11,7 @@ from datetime import datetime
 
 class Analyzer:
     def __init__(self, **kwargs):
-        self._kwargs = kwargs
+        self._options = kwargs
 
         self._line_start = kwargs.get('line_start')
 
@@ -43,10 +44,10 @@ class Analyzer:
                 continue
 
             if not first:
-                yield Line(current.strip(), **self._kwargs)
+                yield Line(current.strip(), **self._options)
             first = False
             current = raw
-        yield Line(current.strip(), **self._kwargs)
+        yield Line(current.strip(), **self._options)
 
     def _expand_file_paths(self, file_paths):
         for file_path in file_paths:
@@ -58,6 +59,7 @@ class Analyzer:
 
 class Line:
     def __init__(self, raw, **kwargs):
+        self._options = kwargs
         self._raw = raw
         self._fields = kwargs.get('fields', {})
         self._line_format = kwargs.get('line_format')
@@ -100,6 +102,7 @@ class Line:
 
 class Screen:
     def __init__(self, analyzer, **kwargs):
+        self._options = kwargs
         self._analyzer = analyzer
         self._s = curses.initscr()
         self._highlight = kwargs.get('highlight', [])
@@ -120,10 +123,13 @@ class Screen:
         try:
             curses.start_color()
             curses.use_default_colors()
-            #self._print_colors()
-            self._init_highlights()
         except:
             self._highlight = []
+        else:
+            if self._options.get('color_screen'):
+                self._print_colors()
+                print('colors')
+            self._init_highlights()
 
         return self
 
@@ -204,20 +210,20 @@ class Screen:
         for i in range(0, 255):
             curses.init_pair(i + 1, fg, i)
             self._s.addstr(f' {i:3} ', curses.color_pair(i + 1))
-            if (i + 1) % 50 == 0:
+            if (i + 1) % 30 == 0:
                 self._s.addstr('\n')
+        self._s.addstr(curses.LINES - 1, 0, 'Press any key for next color screen')
 
     def _print_fg_colors(self, bg):
         self._s.addstr(0, 0, f'Foregrounds ({bg}):\n\n')
         for i in range(0, 255):
             curses.init_pair(i + 1, i, bg)
             self._s.addstr(f' {i:3} ', curses.color_pair(i + 1))
-            if (i + 1) % 50 == 0:
+            if (i + 1) % 30 == 0:
                 self._s.addstr('\n')
+        self._s.addstr(curses.LINES - 1, 0, 'Press any key for next color screen')
 
     def _print_colors(self):
-        curses.use_default_colors()
-
         for bg in [curses.COLOR_WHITE, curses.COLOR_BLACK]:
             self._s.clear()
             self._print_bg_colors(bg)
@@ -339,6 +345,9 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('layout', type=pathlib.Path, help='Path to the logs layout definition file')
     parser.add_argument('files', type=pathlib.Path, nargs='+', help='Path to the log files to be analyzed')
+
+    parser.add_argument('--color-screen', action='store_true',
+                        help='Show a color overview screen before starting the default routines')
 
     yaml.SafeLoader.add_constructor(u'tag:yaml.org,2002:python/regexp', lambda l, n: re.compile(l.construct_scalar(n)))
     yaml.SafeLoader.add_constructor(u'tag:yaml.org,2002:python/strptime', lambda l, n: strptime)
