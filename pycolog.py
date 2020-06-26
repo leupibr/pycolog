@@ -343,8 +343,9 @@ def strptime(date_string, format):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('layout', type=pathlib.Path, help='Path to the logs layout definition file')
-    parser.add_argument('files', type=pathlib.Path, nargs='+', help='Path to the log files to be analyzed')
+    parser.add_argument('--layout', type=pathlib.Path, required=True, help='Path to the logs layout definition file')
+    parser.add_argument('files', type=pathlib.Path, nargs='+', metavar='file',
+                        help='Path to the log files to be analyzed')
 
     parser.add_argument('--color-screen', action='store_true',
                         help='Show a color overview screen before starting the default routines')
