@@ -1,5 +1,5 @@
 from glob import glob
-from re import split
+from re import split, compile
 
 from pycolog.log_entry import LogEntry
 
@@ -17,7 +17,7 @@ class Log:
     def __init__(self, **kwargs):
         self._options = kwargs
 
-        self._entry_start = kwargs.get('line_start')
+        self._entry_start = kwargs.get('line_start', compile(r'^'))
 
         self._raw_lines = []
         files = _expand_file_paths(kwargs.get('files'))

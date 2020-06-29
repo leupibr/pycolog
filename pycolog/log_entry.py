@@ -1,4 +1,4 @@
-
+from re import compile
 
 new_line_char = '\xB6'
 
@@ -8,7 +8,7 @@ class LogEntry:
         self._options = kwargs
         self._raw = raw
         self._fields = kwargs.get('fields', {})
-        self._line_format = kwargs.get('line_format')
+        self._line_format = kwargs.get('line_format', compile('^.*$'))
 
         m = self._line_format.match(raw)
         if m:
