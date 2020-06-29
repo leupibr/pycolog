@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import argparse
+import glob
 import pathlib
 import curses
 
@@ -14,8 +15,11 @@ class Analyzer:
 
         self._line_start = kwargs.get('line_start')
 
-        with open(kwargs.get('file')) as f:
-            self._raw_lines = f.readlines()
+        self._raw_lines = []
+        files = self._expand_file_paths(kwargs.get('files'))
+        for file in self._natural_sort(files):
+            with open(file) as f:
+                self._raw_lines.extend(f.readlines())
 
         self._lines = list(self._find_lines())
         self._total = len(self._lines)
@@ -44,6 +48,13 @@ class Analyzer:
             first = False
             current = raw
         yield Line(current.strip(), **self._options)
+
+    def _expand_file_paths(self, file_paths):
+        for file_path in file_paths:
+            yield from glob.glob(str(file_path))
+
+    def _natural_sort(self, files):
+        return sorted(files, key=lambda key: [int(c) if c.isdigit() else c.lower() for c in re.split('([0-9]+)', key)])
 
 
 class Line:
@@ -332,8 +343,9 @@ def strptime(date_string, format):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('file', type=pathlib.Path, help='Path to the log file to be analyzed')
-    parser.add_argument('format', type=pathlib.Path, help='Path to the logs format file')
+    parser.add_argument('--layout', type=pathlib.Path, required=True, help='Path to the logs layout definition file')
+    parser.add_argument('files', type=pathlib.Path, nargs='+', metavar='file',
+                        help='Path to the log files to be analyzed')
 
     parser.add_argument('--color-screen', action='store_true',
                         help='Show a color overview screen before starting the default routines')
@@ -343,7 +355,7 @@ if __name__ == '__main__':
     yaml.SafeLoader.add_constructor(u'tag:yaml.org,2002:python/tuple', lambda l, n: tuple)
 
     config = parser.parse_args().__dict__
-    with open(config.get('format')) as f:
+    with open(config.get('layout')) as f:
         config.update(yaml.safe_load(f))
 
     analyzer = Analyzer(**config)
