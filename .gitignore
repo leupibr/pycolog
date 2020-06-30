@@ -27,6 +27,7 @@ share/python-wheels/
 *.egg
 MANIFEST
 pycolog/_version.py
+*.snap
 
 # PyInstaller
 #  Usually these files are written by a python script from a template

@@ -1,0 +1,30 @@
+name: pycolog
+base: core20
+adopt-info: pycolog
+summary: Small console application that allows quick analyzation of log files
+description: Small console application that allows quick analyzation of log files
+confinement: strict
+
+apps:
+  pycolog:
+    command: bin/pycolog
+    environment:
+      PYTHONPATH: $SNAP/lib/python3.8/site-packages:$PYTHONPATH
+
+parts:
+  pycolog:
+    source: .
+    override-pull: |
+      snapcraftctl pull
+      version="$(python3 pycolog.py -v)"
+      snapcraftctl set-version $version
+      if echo $version | grep -P '^\d+\.\d+\.\d+$'; then
+        snapcraftctl set-grade "stable"
+      else
+        snapcraftctl set-grade "devel"
+      fi
+    plugin: python
+    build-packages:
+      - git
+    requirements:
+      - requirements.txt
