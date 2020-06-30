@@ -6,14 +6,18 @@ import yaml
 from pycolog import yaml_loader
 from pycolog.log import Log
 from pycolog.screens import LogScreen
-from pycolog._version import version
+
+try:
+    from pycolog.version import version as __version__
+except ImportError:
+    __version__ = '0.0.0'
 
 
 def console_main():
     yaml_loader.register()
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-v', '--version', action='version', version=f'{version}')
+    parser.add_argument('-v', '--version', action='version', version=f'{__version__}')
 
     parser.add_argument('files', type=pathlib.Path, nargs='+', metavar='file',
                         help='Path to the log files to be analyzed')

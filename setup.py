@@ -3,7 +3,7 @@ from setuptools import setup
 
 
 def main():
-    setup(use_scm_version={'write_to': "pycolog/_version.py"})
+    setup(use_scm_version={'write_to': "pycolog/version.py"})
 
 
 if __name__ == "__main__":

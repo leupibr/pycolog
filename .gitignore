@@ -26,7 +26,7 @@ share/python-wheels/
 .installed.cfg
 *.egg
 MANIFEST
-pycolog/_version.py
+pycolog/version.py
 *.snap
 
 # PyInstaller
