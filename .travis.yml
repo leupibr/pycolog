@@ -5,5 +5,8 @@ python:
   - "3.8"
 install:
   - pip install -r requirements.txt
+  - pip install pytest-cov coveralls
 script:
-  - pytest
+  - pytest --cov=pycolog/
+after_success:
+  - coveralls
