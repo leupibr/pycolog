@@ -26,7 +26,7 @@ class LogEntry:
             return value
 
         callback = setting.get('callback')
-        kwargs = setting.get('kwargs')
+        kwargs = setting.get('kwargs', {})
         kwargs[setting['argument']] = value
         return callback(**kwargs)
 
