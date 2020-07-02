@@ -2,7 +2,9 @@
 Module for main log screen and it's helper function, containing the console interaction and print loop.
 """
 import curses
+import sys
 
+from pycolog.screens.details_screen import Details
 from pycolog.screens.environment import Environment
 
 
@@ -25,6 +27,24 @@ class LogScreen:
         self._highlight = kwargs.get('highlight', [])
         self._color_codes = dict()
 
+        self._actions = {
+            'q': lambda: sys.exit(0),
+            'k': self._previous_line,
+            'KEY_UP': self._previous_line,
+            'j': self._next_line,
+            'KEY_DOWN': self._next_line,
+            'KEY_HOME': self._first_page,
+            'KEY_END': self._last_page,
+            'KEY_PPAGE': self._previous_page,
+            ' ': self._next_page,
+            'KEY_NPAGE': self._next_page,
+            'KEY_RESIZE': lambda: True,
+        }
+
+        self._screens = {
+            'd': Details
+        }
+
     def __enter__(self):
         curses.noecho()
         curses.cbreak()
@@ -37,7 +57,6 @@ class LogScreen:
         else:
             if self._e.options.get('color_screen'):
                 self._print_colors()
-                print('colors')
             self._init_highlights()
 
         return self
@@ -59,36 +78,15 @@ class LogScreen:
         while True:
             key = self._s.getkey()
 
-            if key == 'q':
-                break
-
-            if key == 'd':
-                from pycolog.screens.details_screen import Details  # pylint: disable=import-outside-toplevel
-                Details(self._e).show()
-            elif key in ('k', 'KEY_UP'):
-                self._previous_line()
-                continue
-            elif key in ('j', 'KEY_DOWN'):
-                self._next_line()
-                continue
-            elif key == 'KEY_HOME':
-                self._first_page()
-            elif key == 'KEY_END':
-                self._last_page()
-            elif key == 'KEY_PPAGE':
-                self._previous_page()
-            elif key in(' ', 'KEY_NPAGE'):
-                self._next_page()
-            elif key == 'KEY_RESIZE':
-                continue
+            if key in self._screens:
+                skip_refresh = self._screens[key](self._e).show()
             else:
-                self._s.clear()
-                self._s.addstr(2, 2, f'Unknown command {key!r}')
-                self._s.getkey()
+                skip_refresh = self._actions.get(key, lambda: self._unknown_command(key))()
 
-            self._s.clear()
-            self._print_log()
-            self._print_status()
+            if not skip_refresh:
+                self._s.clear()
+                self._print_log()
+                self._print_status()
 
     def _init_highlights(self):
         for highlight in self._highlight:
@@ -161,12 +159,17 @@ class LogScreen:
                 return highlight.get('color', 0)
         return 0
 
+    def _unknown_command(self, key):
+        self._s.clear()
+        self._s.addstr(2, 2, f'Unknown command {key!r}')
+        self._s.getkey()
+
     def _first_page(self):
         self._slice = slice(0, curses.LINES - 2)
 
     def _next_line(self):
         if self._slice.stop + 1 > self._e.log.total:
-            return
+            return True
         self._slice = slice(self._slice.start + 1, self._slice.stop + 1)
         self._s.move(0, 0)
         self._s.deleteln()
@@ -176,10 +179,11 @@ class LogScreen:
         line = self._e.log.get_entry(self._slice.stop - 1)
         self._print_line(curses.LINES - 3, self._slice.stop, line)
         self._print_status()
+        return True
 
     def _previous_line(self):
         if self._slice.start <= 0:
-            return
+            return True
 
         self._slice = slice(self._slice.start - 1, self._slice.stop - 1)
         self._s.move(curses.LINES - 3, 0)
@@ -190,6 +194,8 @@ class LogScreen:
         entry = self._e.log.get_entry(self._slice.start)
         self._print_line(0, self._slice.start + 1, entry)
         self._print_status()
+
+        return True
 
     def _last_page(self):
         lines_per_page = curses.LINES - 2
