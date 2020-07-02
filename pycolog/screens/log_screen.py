@@ -198,4 +198,3 @@ class LogScreen:
             return self._first_page()
         self._slice = slice(self._slice.start - lines_per_page, self._slice.start - 1)
 
-
