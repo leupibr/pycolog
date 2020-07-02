@@ -1,10 +1,14 @@
+"""
+Module containing the methods to be exposed for the safe_load mechanism of `pyyaml`.
+A call of `register()` will add all constructors to the `yaml.SafeLoader`.
+"""
 import re
 from datetime import datetime
 
 import yaml
 
 
-def strptime(date_string, format):
+def strptime(date_string, format):  # pylint: disable=redefined-builtin
     """
     Wrapper around :meth:`datetime.strptime` which allows to pass keyword arguments
 

@@ -1,3 +1,6 @@
+"""
+Small console application that allows quick analyzation of log files
+"""
 import argparse
 import pathlib
 
@@ -14,6 +17,7 @@ except ImportError:
 
 
 def console_main():
+    """Main entry point if executing `pycoloc`"""
     yaml_loader.register()
 
     parser = argparse.ArgumentParser()
@@ -27,8 +31,8 @@ def console_main():
                         help='Show a color overview screen before starting the default routines')
 
     config = parser.parse_args().__dict__
-    with open(config.get('layout')) as f:
-        config.update(yaml.safe_load(f))
+    with open(config.get('layout')) as layout:
+        config.update(yaml.safe_load(layout))
 
     analyzer = Log(**config)
     with LogScreen(analyzer, **config) as screen:
