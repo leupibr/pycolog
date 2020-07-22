@@ -46,6 +46,10 @@ class Details:
             for key, value in line.attributes.items():
                 value = str(value).replace('\n', '\n' + ' ' * indent)
                 self._s.addstr('{:>20s}: {}\n'.format(key, value))
+
+            if line.tags:
+                self._s.addstr('{:>20s}: {}\n'.format('Tags', ', '.join(line.tags)))
+
         except IndexError:
             self._s.addstr(f'Unknown log entry {entry_to_display}')
         self._s.getkey()

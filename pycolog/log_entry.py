@@ -27,6 +27,7 @@ class LogEntry:
             self.attributes = self._parse_fields(match.groupdict())
         else:
             self.attributes = {}
+        self.tags = list(self._find_tags())
         self._lines = self._raw.count('\n')
 
     def _parse_fields(self, attributes):
@@ -41,6 +42,19 @@ class LogEntry:
         kwargs = setting.get('kwargs', {})
         kwargs[setting['argument']] = value
         return callback(**kwargs)
+
+    def _find_tags(self):
+        for tag, config in self._options.get('tags', {}).items():
+            match = config.get('pattern').search(self._raw)
+            if not match:
+                continue
+
+            captures = match.groupdict()
+            for capture, where in config.get('where', {}).items():
+                if captures.get(capture, None) not in where.get('in', []):
+                    break
+            else:
+                yield tag
 
     def __getattr__(self, item):
         return self.attributes.get(item)
