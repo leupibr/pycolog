@@ -77,7 +77,7 @@ class Log:
         return (e for e in self._all if not self._is_filtered(e))
 
     def _is_filtered(self, entry: LogEntry):
-        for field, filter_ in self._options.get('filter', []).items():
+        for field, filter_ in self._options.get('filter', {}).items():
             if field == 'tags':
                 for tag in filter_.get('contain', []):
                     if tag in entry.tags:
