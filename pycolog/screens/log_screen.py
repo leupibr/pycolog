@@ -146,6 +146,8 @@ class LogScreen:
 
     def _print_status(self):
         last_line = curses.LINES
+        self._s.move(last_line - 1, 0)
+        self._s.clrtoeol()
         self._s.addstr(last_line - 1, 3, self._e.status_format.format(
             self._slice.start + 1,
             self._slice.stop,
