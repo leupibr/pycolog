@@ -35,13 +35,19 @@ class Log:
             with open(file_path) as file_handle:
                 self._raw_lines.extend(file_handle.readlines())
 
-        self._entries = list(self._find_entries())
+        self._all = list(self._find_entries())
+        self._entries = list(self._filter_entries())
         self._total = len(self._entries)
+        self._filtered = len(self._all) - self._total
 
     @property
     def total(self):
         """Gets the total count of messages. This may differs to the total count of lines."""
         return self._total
+
+    @property
+    def filtered(self):
+        return self._filtered
 
     def get_entries(self, slice_):
         """Get multiple entries given by a slice."""
@@ -64,4 +70,20 @@ class Log:
                 yield LogEntry(current.strip(), **self._options)
             first = False
             current = raw
+
         yield LogEntry(current.strip(), **self._options)
+
+    def _filter_entries(self):
+        return (e for e in self._all if not self._is_filtered(e))
+
+    def _is_filtered(self, entry: LogEntry):
+        for field, filter_ in self._options.get('filter', []).items():
+            if field == 'tags':
+                for tag in filter_.get('contain', []):
+                    if tag in entry.tags:
+                        return True
+                for tag in filter_.get('not_contain', []):
+                    if tag not in entry.tags:
+                        return True
+
+        return False

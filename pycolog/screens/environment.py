@@ -29,7 +29,7 @@ class Environment:
             * 2: total lines
         :rtype: str
         """
-        return '{} .. {} / {}'
+        return '{} .. {} / {}{}'
 
     def __getitem__(self, item):
         return self._environment[item]

@@ -149,7 +149,8 @@ class LogScreen:
         self._s.addstr(last_line - 1, 3, self._e.status_format.format(
             self._slice.start + 1,
             self._slice.stop,
-            self._e.log.total
+            self._e.log.total,
+            '*' if self._e.log.filtered else ''
         ))
 
     def _get_highlight_color(self, line):
