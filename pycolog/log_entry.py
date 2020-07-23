@@ -1,6 +1,8 @@
 """Module for the `LogEntry` class"""
 import re
 
+import pycolog.plugins
+
 NEW_LINE_CHAR = '\xB6'
 """Character to use instead of a new line while truncating."""
 
@@ -27,8 +29,23 @@ class LogEntry:
             self.attributes = self._parse_fields(match.groupdict())
         else:
             self.attributes = {}
-        self.tags = list(self._find_tags())
+        self.tags = set(self._find_tags())
         self._lines = self._raw.count('\n')
+        self._interpreted = None
+
+        pycolog.plugins.post_construct(self, self._options)
+
+    @property
+    def raw(self):
+        return self._raw
+
+    @property
+    def interpreted(self):
+        return self._interpreted
+
+    @interpreted.setter
+    def interpreted(self, value):
+        self._interpreted = value
 
     def _parse_fields(self, attributes):
         return {k: self._parse_field(k, v) for k, v in attributes.items()}
@@ -65,6 +82,11 @@ class LogEntry:
     def __str__(self):
         return self._raw
 
+    def interpreted_truncate(self, width):
+        if not self._interpreted:
+            return self.truncate(width)
+        return self._truncate(self._interpreted, width)
+
     def truncate(self, width):
         """
         Returns a limited number of chars of the given line.
@@ -76,7 +98,10 @@ class LogEntry:
         :returns: A truncated string with a length less or equal to `width`
         :rtype: str
         """
-        msg = self._raw.replace('\n', NEW_LINE_CHAR)
+        return self._truncate(self._raw, width)
+
+    def _truncate(self, message, width):
+        msg = message.replace('\n', NEW_LINE_CHAR)
         if len(msg) > width:
             return msg[:width - 3] + '...'
         return msg

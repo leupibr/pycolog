@@ -9,6 +9,7 @@ import yaml
 from pycolog import yaml_loader
 from pycolog.log import Log
 from pycolog.screens import LogScreen
+from pycolog.plugins import load as load_plugins, mount as mount_plugins
 
 try:
     from pycolog.version import version as __version__
@@ -33,6 +34,9 @@ def console_main():
     config = parser.parse_args().__dict__
     with open(config.get('layout')) as layout:
         config.update(yaml.safe_load(layout))
+
+    config['plugins'] = list(load_plugins(config.get('plugins', [])))
+    mount_plugins(config)
 
     analyzer = Log(**config)
     with LogScreen(analyzer, **config) as screen:

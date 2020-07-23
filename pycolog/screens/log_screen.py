@@ -112,7 +112,7 @@ class LogScreen:
 
     def _print_line(self, y_pos, index, line):
         color = self._get_highlight_color(line)
-        msg = line.truncate(self._e.msglen)
+        msg = line.interpreted_truncate(self._e.msglen)
         self._s.addstr(y_pos, 0, self._e.line_format.format(index, msg), curses.color_pair(color))
 
     def _print_bg_colors(self, foreground):
